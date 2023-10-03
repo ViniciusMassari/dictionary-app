@@ -189,6 +189,7 @@ h1 {
   border: none;
   background: transparent;
   font-weight: bold;
+  color: var(--light-gray);
 }
 
 .search button {
@@ -212,6 +213,7 @@ h1 {
 
 .word-result h2 {
   margin-bottom: 0.5rem;
+  text-transform: capitalize;
 }
 
 .word-result p {
