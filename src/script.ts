@@ -1,33 +1,12 @@
 import './styles.css'
 import './index.html'
+import { Word } from './types'
+import { setWordPhoneticResultHTML, setWordResultHTML } from './utils/htmlManipulation'
 
 
 
-interface Definitions{
-    definition: string;
-    synonyms?: string[];
-    antonyms?: string[]
-}
 
-export interface Meanings{
-    partOfSpeech: string;
-    definitions: Definitions[]
-    synonyms?: string[];
-    antonyms?: string[]
-}
 
-interface Phonetic{
-    text:string;
-    audio:string
-}
-
-interface Word{
-    word:string;
-    phonetic?: string;
-    phonetics: Phonetic[];
-    meanings: Meanings[];
-    sourceUrls: string[];
-}
 
 function isWordData(data: unknown): data is Word {
     if (data && typeof data === 'object' && 'word' in data) {
@@ -97,36 +76,33 @@ fontsList?.forEach(li =>{
 
 // Search
 
+
+
 const input:HTMLInputElement | null = document.querySelector('input');
 const search = document.querySelector('#search')
 
 function handleWordResult(data: Word[]) {
-    const word = document.querySelector('.word');
+    const word: HTMLElement | null = document.querySelector('.word');
     const audio: HTMLAudioElement | null =  document.querySelector('audio');
-    const footer = document.querySelector('footer');
+    const footer:HTMLElement | null = document.querySelector('footer');
     const wordData = data[0];
 const meaningResult: HTMLElement | null = document.querySelector('.meaning-result')
     const {meanings} = wordData;
 
-if (meaningResult) {
+    if (meaningResult) {
     meaningResult.innerHTML = ''
-}
+    }
 
     
 if (data && isWordData(wordData)) {
-    // word
-    word?.innerHTML ? word.innerHTML = ` <h2>${wordData.word ?? ""}</h2>
-                <span class=" purple">${wordData.phonetic ?? ""}</span>` : ''
-// audio
-wordData.phonetics.forEach(phonetic =>{
-    const extension = phonetic.audio.substring(phonetic.audio.lastIndexOf('.') + 1)
-    if (audio && phonetic.audio !== '') {
-        audio.innerHTML = `<source src="${phonetic.audio}" type="audio/${extension === 'mp3' ? 'mpeg' : extension}">
-`}
-})
+
+    setWordResultHTML(word,wordData)
+    setWordPhoneticResultHTML(audio, wordData)
+
+    
 // meaning
 if (meaningResult) {
-    meaningResult.innerHTML = "Hello world"
+    meaningResult.innerHTML = `<p>${wordData.word}</p>`
 meanings.forEach(mean =>{
     meaningResult.innerHTML += ` 
     <div class="partOfSpeech">
@@ -156,32 +132,17 @@ if (footer) {
 
 }
 
-
-async function handleSearch(e:Event,) {
-    e.preventDefault()
-    if ( input) {
-        localStorage.setItem('search', input.value)
+// search handling
+async function handleSearch(cacheSearch?:string) {
+    if (input) {
+        let search:string;
+        cacheSearch ? search = cacheSearch : search = input.value
+        localStorage.setItem('search',search )
     }
     const searchError = document.querySelector('.searchError')
     const form = document.getElementById('searchForm')
-    const res =await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${input?.value}`)
-    
-    if (res.status === 404) {
-          form?.classList.add('error')
-        searchError?.classList.add(ACTIVE_CLASS)
-    } else{
-         form?.classList.remove('error')
-        searchError?.classList.remove(ACTIVE_CLASS)
-        const resJson = await res.json()
-        handleWordResult(resJson)
-    }
-}
-
-async function onAdvanceFetch(search:string) {
- const searchError = document.querySelector('.searchError')
-    const form = document.getElementById('searchForm')
-    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${search}`)
-    
+    const search = cacheSearch ? cacheSearch : input?.value
+    const res =await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${search}`)
     if (res.status === 404) {
           form?.classList.add('error')
         searchError?.classList.add(ACTIVE_CLASS)
@@ -196,12 +157,16 @@ async function onAdvanceFetch(search:string) {
 
 const previousSearch = localStorage.getItem('search')
 if (previousSearch !== undefined && previousSearch) {
-    onAdvanceFetch(previousSearch)
+    handleSearch(previousSearch)
 }
 
 
 
 
-search?.addEventListener('click', handleSearch)
+search?.addEventListener('click', (e: Event) =>{
+    e.preventDefault()
+    handleSearch()
+})
+
 
 
