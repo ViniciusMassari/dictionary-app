@@ -79,11 +79,10 @@ fontsList?.forEach(li =>{
 
 
 const input:HTMLInputElement | null = document.querySelector('input');
-const search = document.querySelector('#search')
-
 function handleWordResult(data: Word[]) {
-    const word: HTMLElement | null = document.querySelector('.word');
+    const word: HTMLElement | null = document.querySelector('.word-result');
     const audio: HTMLAudioElement | null =  document.querySelector('audio');
+    
     const footer:HTMLElement | null = document.querySelector('footer');
     const wordData = data[0];
 const meaningResult: HTMLElement | null = document.querySelector('.meaning-result')
@@ -97,12 +96,11 @@ const meaningResult: HTMLElement | null = document.querySelector('.meaning-resul
 if (data && isWordData(wordData)) {
 
     setWordResultHTML(word,wordData)
-    setWordPhoneticResultHTML(audio, wordData)
+    setWordPhoneticResultHTML(audio,wordData)
 
     
 // meaning
 if (meaningResult) {
-    meaningResult.innerHTML = `<p>${wordData.word}</p>`
 meanings.forEach(mean =>{
     meaningResult.innerHTML += ` 
     <div class="partOfSpeech">
@@ -132,6 +130,7 @@ if (footer) {
 
 }
 
+const form = document.getElementById('searchForm')
 // search handling
 async function handleSearch(cacheSearch?:string) {
     if (input) {
@@ -140,7 +139,6 @@ async function handleSearch(cacheSearch?:string) {
         localStorage.setItem('search',search )
     }
     const searchError = document.querySelector('.searchError')
-    const form = document.getElementById('searchForm')
     const search = cacheSearch ? cacheSearch : input?.value
     const res =await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${search}`)
     if (res.status === 404) {
@@ -150,6 +148,8 @@ async function handleSearch(cacheSearch?:string) {
          form?.classList.remove('error')
         searchError?.classList.remove(ACTIVE_CLASS)
         const resJson = await res.json()
+        console.log(resJson);
+        
         handleWordResult(resJson)
     }
 }
@@ -163,14 +163,8 @@ if (previousSearch !== undefined && previousSearch) {
 
 
 
-search?.addEventListener('click', (e: Event) =>{
-    e.preventDefault()
+form?.addEventListener('submit', (e:SubmitEvent) =>{
+    e.preventDefault();
     handleSearch()
-})
-
-input?.addEventListener('keydown', (e: KeyboardEvent) =>{
-   if(e.key === "Enter"){
-    handleSearch();   
-   } 
 })
 
