@@ -168,5 +168,9 @@ search?.addEventListener('click', (e: Event) =>{
     handleSearch()
 })
 
-
+input?.addEventListener('keydown', (e: KeyboardEvent) =>{
+   if(e.key === "Enter"){
+    handleSearch();   
+   } 
+})
 
